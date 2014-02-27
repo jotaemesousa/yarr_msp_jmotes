@@ -22,6 +22,10 @@ extern "C"
 void setup_adc(void);
 void adc_sample(unsigned int *ADC_ptr);
 
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 void rf24_init(RF24& radio)
 {
 	radio = RF24();
@@ -37,7 +41,7 @@ void rf24_init(RF24& radio)
 
 	// optionally, reduce the payload size.  seems to
 	// improve reliability
-	radio.setPayloadSize(sizeof(RC_remote));
+	radio.setPayloadSize(sizeof(report_t));
 
 	radio.setDataRate(RF24_250KBPS);
 
@@ -47,6 +51,8 @@ void rf24_init(RF24& radio)
 
 	// Start listening
 	radio.startListening();
+
+	radio.printDetails();
 }
 
 void setupPWM(void)
@@ -65,6 +71,74 @@ void setupPWM(void)
 	TA1CTL   = TASSEL_2 + MC_1 + ID_3;                // SMCLK, up mode
 }
 
+uint8_t getNRF24report(RF24 &radio, report_t &gamepad_report)
+{
+	// if there is data ready
+	if (radio.available()) {
+		//report_t gamepad_report;
+		bool done = false;
+		while (!done) {
+			// Fetch the payload, and see if this was the last one.
+			done = radio.read(&gamepad_report, sizeof(report_t));
+			return 0;
+		}
+	}
+	return 1;
+}
+
+uint_fast8_t checkifButtonIsPressed(report_t &gamepad_report, jmotes_buttons button)
+{
+	if((gamepad_report.buttons & button) == button)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void drive(report_t &gamepad_report)
+{
+	int y = (int8_t) gamepad_report.linear;
+	//	int y = (int8_t) gamepad_report->y;
+	//	int rx = (int8_t) gamepad_report->rx;
+	int ry = (int8_t) gamepad_report.steer;
+
+	unsigned int  pos = 1500;
+	if(!checkifButtonIsPressed(gamepad_report, R1_BUTTON))
+	{
+		if (ry > 0){
+			pos = map(ry, 1, 127, 1500, 1000);
+		}
+		else if (ry < 0){
+			pos = map(-ry, 1, 127, 1500, 2000);
+		}
+	}
+	else
+	{
+
+	}
+
+	TA1CCR1 = pos;
+
+	unsigned int speed = 1500;
+	if(!checkifButtonIsPressed(gamepad_report, L1_BUTTON))
+	{
+		if (y > 0){
+			speed = map(y, 1, 127, 1500, 2000);
+		}else if (y < 0){
+			speed = map(-y, 1, 127, 1500, 1000);
+		}
+	}
+	else
+	{
+
+	}
+
+	TA1CCR2 = speed;
+}
+
 // main loop
 int main(void)
 {
@@ -81,11 +155,11 @@ int main(void)
 	__bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
 
 	// ____________________________________________________________
-	RC_remote ferrari;
+	report_t car;
 	//RC_dongle car_param;
-	ferrari.steer = 0;
-	ferrari.linear = 0;
-	ferrari.buttons = 0;
+	car.steer = 0;
+	car.linear = 0;
+	car.buttons = 0;
 
 
 	serial_init(57600);
@@ -101,27 +175,16 @@ int main(void)
 	{
 
 		// if there is data ready
-		if ( radio.available() )
+		if(!getNRF24report(radio, car))
 		{
-			// Dump the payloads until we've gotten everything
-			bool done = false;
-			while (!done)
+			drive(car);
+
+			if((car.buttons & ASK_BIT) == ASK_BIT)
 			{
-				done = radio.read( &ferrari, sizeof(RC_remote) );
-
-
-				if(done)
-				{
-					BLINK_GREEN_LED
-
-					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
-					{
-						uint8_t value2send = 0;
-						radio.stopListening();
-						radio.write(&value2send, sizeof(uint8_t));
-						radio.startListening();
-					}
-				}
+				uint8_t value2send = 0;
+				radio.stopListening();
+				radio.write(&value2send, sizeof(uint8_t));
+				radio.startListening();
 			}
 		}
 	}
