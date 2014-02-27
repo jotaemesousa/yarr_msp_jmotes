@@ -49,6 +49,21 @@ void rf24_init(RF24& radio)
 	radio.startListening();
 }
 
+void setupPWM(void)
+{
+	P2DIR |= BIT1 + BIT4;
+	P2SEL |= BIT1 + BIT4;
+
+	TA0CCR0 = 20000-1;
+	TA1CCR0 = 20000-1;
+
+	TA1CCR1 = 1500;
+	TA1CCR2 = 1500;
+
+	TA1CCTL1 = OUTMOD_7;                       // CCR1 reset/set
+	TA1CCTL2 = OUTMOD_7;                       // CCR2 reset/set
+	TA1CTL   = TASSEL_2 + MC_1 + ID_3;                // SMCLK, up mode
+}
 
 // main loop
 int main(void)
@@ -61,7 +76,7 @@ int main(void)
 	unsigned long int last_millis = 0;
 	default_timer();
 
-
+	setupPWM();
 
 	__bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
 
