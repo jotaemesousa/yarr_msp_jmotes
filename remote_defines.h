@@ -22,13 +22,4 @@ typedef struct ROSpberryRemote
 
 }RC_remote;
 
-typedef struct ROSpberryDongle
-{
-	int16_t velocity;
-	int16_t batery_level;
-	int16_t x;
-	int16_t y;
-
-}RC_dongle;
-
 #endif /* REMOTE_DEFINES_H_ */
