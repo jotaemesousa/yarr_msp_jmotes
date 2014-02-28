@@ -21,6 +21,7 @@ extern "C"
 // Function prototypes
 void setup_adc(void);
 void adc_sample(unsigned int *ADC_ptr);
+int var = 0;
 
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -80,10 +81,18 @@ uint8_t getNRF24report(RF24 &radio, report_t &gamepad_report)
 		while (!done) {
 			// Fetch the payload, and see if this was the last one.
 			done = radio.read(&gamepad_report, sizeof(report_t));
-			return 0;
+
+			if(done)
+			{
+				return 0;
+			}
+			else
+			{
+				return 1;
+			}
 		}
 	}
-	return 1;
+	return 2;
 }
 
 uint_fast8_t checkifButtonIsPressed(report_t &gamepad_report, jmotes_buttons button)
@@ -117,7 +126,12 @@ void drive(report_t &gamepad_report)
 	}
 	else
 	{
-
+		if (ry > 0){
+			pos = map(ry, 1, 127, 1500, 1200);
+		}
+		else if (ry < 0){
+			pos = map(-ry, 1, 127, 1500, 1800);
+		}
 	}
 
 	TA1CCR1 = pos;
@@ -133,7 +147,11 @@ void drive(report_t &gamepad_report)
 	}
 	else
 	{
-
+		if (y > 0){
+			speed = map(y, 1, 127, 1500, 1700);
+		}else if (y < 0){
+			speed = map(-y, 1, 127, 1500, 1300);
+		}
 	}
 
 	TA1CCR2 = speed;
@@ -142,8 +160,8 @@ void drive(report_t &gamepad_report)
 // main loop
 int main(void)
 {
-	WDTCTL = WDT_MDLY_32;                     // Set Watchdog Timer interval to ~30ms
-	IE1 |= WDTIE;
+	WDTCTL = WDTPW + WDTHOLD;                     // Set Watchdog Timer interval to ~30ms
+
 	BCSCTL1 = CALBC1_8MHZ;            		// Set DCO to 1MHz
 	DCOCTL = CALDCO_8MHZ;
 
@@ -174,19 +192,29 @@ int main(void)
 	for(;;)
 	{
 
-		// if there is data ready
-		if(!getNRF24report(radio, car))
-		{
-			drive(car);
-
-			if((car.buttons & ASK_BIT) == ASK_BIT)
+			// if there is data ready
+			if(!getNRF24report(radio, car))
 			{
-				uint8_t value2send = 0;
-				radio.stopListening();
-				radio.write(&value2send, sizeof(uint8_t));
-				radio.startListening();
+				drive(car);
+
+				if((car.buttons & ASK_BIT) == ASK_BIT)
+				{
+					uint8_t value2send = 0;
+					radio.startListening();
+					radio.stopListening();
+					radio.write(&value2send, sizeof(uint8_t));
+					radio.startListening();
+				}
+				last_millis = millis();
 			}
-		}
+			else
+			{
+				if(millis() - last_millis > 500)
+				{
+					report_t temp = {0,0,0};
+					drive(temp);
+				}
+			}
 	}
 	return 0;
 }
@@ -225,11 +253,6 @@ __interrupt void watchdog_timer(void)
 {
 	static int c = 0;
 
-	c++;
+	var = 1;
 
-	if(c > 264)
-	{
-		BLINK_RED_LED
-		c = 0;
-	}
 }
