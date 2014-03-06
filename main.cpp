@@ -137,7 +137,7 @@ void drive(report_t &gamepad_report)
 	TA1CCR1 = pos;
 
 	unsigned int speed = 1500;
-	if(!checkifButtonIsPressed(gamepad_report, L1_BUTTON))
+	if(checkifButtonIsPressed(gamepad_report, L1_BUTTON))
 	{
 		if (y > 0){
 			speed = map(y, 1, 127, 1500, 2000);
