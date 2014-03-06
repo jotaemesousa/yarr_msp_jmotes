@@ -5,14 +5,14 @@
  *      Author: joao
  */
 
-#include "RF24.h"
+#include "rf24/RF24.h"
 #include <msp430.h>
 #include "remote_defines.h"
 #include "string.h"
 
 extern "C"
 {
-#include "spi.h"
+#include "rf24/spi.h"
 #include "conio/conio.h"
 #include "serial/serial.h"
 #include "timer_msp.h"
@@ -58,8 +58,8 @@ void rf24_init(RF24& radio)
 
 void setupPWM(void)
 {
-	P2DIR |= BIT1 + BIT4;
-	P2SEL |= BIT1 + BIT4;
+	P2DIR |= BIT2 + BIT4;
+	P2SEL |= BIT2 + BIT4;
 
 	TA0CCR0 = 20000-1;
 	TA1CCR0 = 20000-1;
@@ -148,9 +148,9 @@ void drive(report_t &gamepad_report)
 	else
 	{
 		if (y > 0){
-			speed = map(y, 1, 127, 1500, 1700);
+			speed = map(y, 1, 127, 1500, 1800);
 		}else if (y < 0){
-			speed = map(-y, 1, 127, 1500, 1300);
+			speed = map(-y, 1, 127, 1500, 1200);
 		}
 	}
 

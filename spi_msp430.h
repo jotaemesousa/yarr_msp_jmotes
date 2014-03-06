@@ -13,14 +13,14 @@
 //#define CS_PIN_BASE P1OUT
 #define CS_PORT		P2OUT
 #define CS_DIR		P2DIR
-#define CS_PIN 		BIT2
+#define CS_PIN 		BIT0
 
 #define SIMO_PIN    BIT7
 #define SOMI_PIN    BIT6
 #define SCLK_PIN    BIT5
 
 //#define CE_PIN_BASE P1OUT
-#define CE_PIN 		BIT3
+#define CE_PIN 		BIT1
 #define CE_PORT		P2OUT
 #define CE_DIR		P2DIR
 

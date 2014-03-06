@@ -20,7 +20,7 @@
 					<folderInfo id="dk.xpg.msp430eclipse.configuration.app.debug.739985067." name="/" resourcePath="">
 						<toolChain id="dk.xpg.msp430eclipse.toolchain.gcc.app.debug.840984878" name="MSP430 GCC Toolchain" superClass="dk.xpg.msp430eclipse.toolchain.gcc.app.debug">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="dk.xpg.msp430eclipse.targetplatform.msp430.1900574144" isAbstract="false" name="MSP430 Cross-Target" osList="all" superClass="dk.xpg.msp430eclipse.targetplatform.msp430"/>
-							<builder buildPath="${workspace_loc:/MSP_remote_RF24/Debug}" id="dk.xpg.msp430eclipse.target.gnu.builder.977280653" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="MSP430 GNU Make Builder" superClass="dk.xpg.msp430eclipse.target.gnu.builder"/>
+							<builder buildPath="${workspace_loc:/MSP_remote_RF24/Debug}" id="dk.xpg.msp430eclipse.target.gnu.builder.977280653" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="MSP430 GNU Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="dk.xpg.msp430eclipse.target.gnu.builder"/>
 							<tool id="dk.xpg.msp430eclipse.tool.compiler.gcc.2109166548" name="MSP430 C Compiler" superClass="dk.xpg.msp430eclipse.tool.compiler.gcc">
 								<option defaultValue="dk.xpg.msp430eclipse.compiler.option.optimization.level.none" id="dk.xpg.msp430eclipse.compiler.option.optimization.level.1797329154" name="Optimization Level" superClass="dk.xpg.msp430eclipse.compiler.option.optimization.level" value="dk.xpg.msp430eclipse.compiler.option.optimization.level.more" valueType="enumerated"/>
 								<option defaultValue="dk.xpg.msp430eclipse.compiler.option.debugging.level.default" id="dk.xpg.msp430eclipse.compiler.option.debugging.level.490508924" name="Debugging Level" superClass="dk.xpg.msp430eclipse.compiler.option.debugging.level" valueType="enumerated"/>
@@ -30,7 +30,6 @@
 								</option>
 								<option id="dk.xpg.msp430eclipse.compiler.option.includes.paths.1920248277" name="Include paths (-I)" superClass="dk.xpg.msp430eclipse.compiler.option.includes.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/joao/msp430/include/libemb"/>
-									<listOptionValue builtIn="false" value="/home/joao/msp430/rf24"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}&quot;"/>
 								</option>
 								<option id="dk.xpg.msp430eclipse.compiler.option.includes.files.927716940" name="Include files (-include)" superClass="dk.xpg.msp430eclipse.compiler.option.includes.files" valueType="includeFiles">
@@ -129,7 +128,7 @@
 			<resource resourceType="PROJECT" workspacePath="/MSP_remote_RF24"/>
 		</configuration>
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/MSP_remote_RF24"/>
+			<resource resourceType="PROJECT" workspacePath="/RC_msp"/>
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
@@ -142,4 +141,5 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
