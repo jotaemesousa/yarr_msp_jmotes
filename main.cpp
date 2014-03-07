@@ -61,7 +61,7 @@ void setupPWM(void)
 	P2DIR |= BIT2 + BIT4;
 	P2SEL |= BIT2 + BIT4;
 
-	TA0CCR0 = 20000-1;
+	//TA0CCR0 = 20000-1;
 	TA1CCR0 = 20000-1;
 
 	TA1CCR1 = 1500;
@@ -165,10 +165,12 @@ int main(void)
 	BCSCTL1 = CALBC1_8MHZ;            		// Set DCO to 1MHz
 	DCOCTL = CALDCO_8MHZ;
 
-	unsigned long int last_millis = 0;
+	uint32_t last_millis = millis();
 	default_timer();
 
 	setupPWM();
+
+	P1DIR |= BIT0;
 
 	__bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
 
@@ -193,9 +195,10 @@ int main(void)
 	{
 
 			// if there is data ready
-			if(!getNRF24report(radio, car))
+			if(getNRF24report(radio, car)==0)
 			{
 				drive(car);
+				P1OUT &= ~BIT0;
 
 				if((car.buttons & ASK_BIT) == ASK_BIT)
 				{
@@ -213,6 +216,7 @@ int main(void)
 				{
 					report_t temp = {0,0,0};
 					drive(temp);
+					P1OUT |= BIT0;
 				}
 			}
 	}
