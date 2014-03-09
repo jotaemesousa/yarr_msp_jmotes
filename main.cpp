@@ -182,9 +182,9 @@ int main(void)
 	car.buttons = 0;
 
 
-	serial_init(57600);
-	cio_printf(":Init UART;\n");
-	cio_printf(":Done;\n");
+//	serial_init(57600);
+//	cio_printf(":Init UART;\n");
+//	cio_printf(":Done;\n");
 
 
 	RF24 radio;

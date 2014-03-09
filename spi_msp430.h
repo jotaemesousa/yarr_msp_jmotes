@@ -11,6 +11,8 @@
 #include <msp430.h>
 
 //#define CS_PIN_BASE P1OUT
+#define CS_SEL		P2SEL
+#define CS_SEL2		P2SEL2
 #define CS_PORT		P2OUT
 #define CS_DIR		P2DIR
 #define CS_PIN 		BIT0
@@ -20,11 +22,13 @@
 #define SCLK_PIN    BIT5
 
 //#define CE_PIN_BASE P1OUT
+#define CE_SEL		P2SEL
+#define CE_SEL2		P2SEL2
 #define CE_PIN 		BIT1
 #define CE_PORT		P2OUT
 #define CE_DIR		P2DIR
 
-#define IRQ_PIN 	BIT0
+#define IRQ_PIN 	BIT3
 #define IRQ_PORT	P1OUT
 #define IRQ_DIR		P1DIR
 
