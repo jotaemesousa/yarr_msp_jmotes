@@ -8,7 +8,8 @@
 #ifndef REMOTE_DEFINES_H_
 #define REMOTE_DEFINES_H_
 
-#define START_CALIBRATION_TIME_MS 2000
+#define START_CALIBRATION_TIME_MS 	2000
+#define TIMEOUT_MS					250
 
 typedef struct ROSpberryRemote
 {

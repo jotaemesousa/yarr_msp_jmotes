@@ -9,6 +9,7 @@
 #include <msp430.h>
 #include "remote_defines.h"
 #include "string.h"
+#include "flash.h"
 
 extern "C"
 {
@@ -162,12 +163,12 @@ void drive(report_t &gamepad_report, CarParameters &settings)
 
 void readSettinsFromFlash(CarParameters *settings)
 {
-
+	read_SegC((unsigned char *)settings, sizeof(*settings), 0);
 }
 
 void storeSettinsToFlash(CarParameters &settings)
 {
-
+	write_SegC((unsigned char *)&settings, sizeof(settings));
 }
 
 // main loop
@@ -183,6 +184,7 @@ int main(void)
 	default_timer();
 
 	setupPWM();
+	flash_init();
 
 	P1DIR |= BIT0 + BIT1;
 
@@ -193,6 +195,9 @@ int main(void)
 	CarParameters settings;
 	settings.steer_invert = 0;
 	settings.steer_offset = 0;
+
+	readSettinsFromFlash(&settings);
+
 	//RC_dongle car_param;
 	car.steer = 0;
 	car.linear = 0;
@@ -268,6 +273,7 @@ int main(void)
 						drive(temp, settings);
 					}
 				}
+				storeSettinsToFlash(settings);
 				calibration_status = 0;
 				break;
 
@@ -279,7 +285,7 @@ int main(void)
 		}
 		else
 		{
-			if(millis() - last_millis > 500)
+			if(millis() - last_millis > TIMEOUT_MS)
 			{
 				report_t temp = {0,0,0};
 				drive(temp, settings);
