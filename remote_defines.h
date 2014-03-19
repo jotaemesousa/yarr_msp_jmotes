@@ -8,11 +8,7 @@
 #ifndef REMOTE_DEFINES_H_
 #define REMOTE_DEFINES_H_
 
-//#define L1_BUTTON		0x01
-//#define L2_BUTTON		0x02
-//#define R1_BUTTON		0x04
-//#define R2_BUTTON		0x08
-//#define ASK_BIT			0x10
+#define START_CALIBRATION_TIME_MS 2000
 
 typedef struct ROSpberryRemote
 {
@@ -30,5 +26,11 @@ typedef enum
 	R2_BUTTON = 0x08,
 	ASK_BIT = 0x10
 }jmotes_buttons;
+
+typedef struct CarParameters_
+{
+	int8_t steer_invert;
+	int16_t steer_offset;
+}CarParameters;
 
 #endif /* REMOTE_DEFINES_H_ */

@@ -107,30 +107,33 @@ uint_fast8_t checkifButtonIsPressed(report_t &gamepad_report, jmotes_buttons but
 	}
 }
 
-void drive(report_t &gamepad_report)
+void drive(report_t &gamepad_report, CarParameters &settings)
 {
 	int y = (int8_t) gamepad_report.linear;
-	//	int y = (int8_t) gamepad_report->y;
-	//	int rx = (int8_t) gamepad_report->rx;
-	int ry = (int8_t) gamepad_report.steer;
+	int ry = (int8_t) (gamepad_report.steer);
 
-	unsigned int  pos = 1500;
+	if(settings.steer_invert)
+	{
+		ry *= -1;
+	}
+
+	unsigned int  pos = 1500 + settings.steer_offset;
 	if(!checkifButtonIsPressed(gamepad_report, R1_BUTTON))
 	{
 		if (ry > 0){
-			pos = map(ry, 1, 127, 1500, 1000);
+			pos = map(ry, 1, 127, 1500 + settings.steer_offset, 2000 + settings.steer_offset);
 		}
 		else if (ry < 0){
-			pos = map(-ry, 1, 127, 1500, 2000);
+			pos = map(-ry, 1, 127, 1500 + settings.steer_offset, 1000 + settings.steer_offset);
 		}
 	}
 	else
 	{
 		if (ry > 0){
-			pos = map(ry, 1, 127, 1500, 1200);
+			pos = map(ry, 1, 127, 1500 + settings.steer_offset, 1800 + settings.steer_offset);
 		}
 		else if (ry < 0){
-			pos = map(-ry, 1, 127, 1500, 1800);
+			pos = map(-ry, 1, 127, 1500 + settings.steer_offset, 1200 + settings.steer_offset);
 		}
 	}
 
@@ -157,6 +160,16 @@ void drive(report_t &gamepad_report)
 	TA1CCR2 = speed;
 }
 
+void readSettinsFromFlash(CarParameters *settings)
+{
+
+}
+
+void storeSettinsToFlash(CarParameters &settings)
+{
+
+}
+
 // main loop
 int main(void)
 {
@@ -166,59 +179,113 @@ int main(void)
 	DCOCTL = CALDCO_8MHZ;
 
 	uint32_t last_millis = millis();
+	uint32_t last_millis_calibration = millis();
 	default_timer();
 
 	setupPWM();
 
-	P1DIR |= BIT0;
+	P1DIR |= BIT0 + BIT1;
 
 	__bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
 
 	// ____________________________________________________________
 	report_t car;
+	CarParameters settings;
+	settings.steer_invert = 0;
+	settings.steer_offset = 0;
 	//RC_dongle car_param;
 	car.steer = 0;
 	car.linear = 0;
 	car.buttons = 0;
 
 
-//	serial_init(57600);
-//	cio_printf(":Init UART;\n");
-//	cio_printf(":Done;\n");
+	//	serial_init(57600);
+	//	cio_printf(":Init UART;\n");
+	//	cio_printf(":Done;\n");
 
 
 	RF24 radio;
 
 	rf24_init(radio);
 
+	uint8_t calibration_status = 0;
+
 	for(;;)
 	{
 
-			// if there is data ready
-			if(getNRF24report(radio, car)==0)
-			{
-				drive(car);
-				P1OUT &= ~BIT0;
+		// if there is data ready
+		if(getNRF24report(radio, car)==0)
+		{
+			drive(car, settings);
+			P1OUT &= ~BIT0;
 
-				if((car.buttons & ASK_BIT) == ASK_BIT)
-				{
-					uint8_t value2send = 0;
-					radio.startListening();
-					radio.stopListening();
-					radio.write(&value2send, sizeof(uint8_t));
-					radio.startListening();
-				}
-				last_millis = millis();
-			}
-			else
+			if((car.buttons & ASK_BIT) == ASK_BIT)
 			{
-				if(millis() - last_millis > 500)
-				{
-					report_t temp = {0,0,0};
-					drive(temp);
-					P1OUT |= BIT0;
-				}
+				uint8_t value2send = 0;
+				radio.startListening();
+				radio.stopListening();
+				radio.write(&value2send, sizeof(uint8_t));
+				radio.startListening();
 			}
+
+			switch (calibration_status)
+			{
+			case 0:
+				if(checkifButtonIsPressed(car, L2_BUTTON))
+				{
+					calibration_status = 1;
+					last_millis_calibration = millis();
+				}
+				break;
+
+			case 1:
+				if(checkifButtonIsPressed(car, L2_BUTTON))
+				{
+					if(millis() - last_millis_calibration > START_CALIBRATION_TIME_MS)
+					{
+						calibration_status = 2;
+						report_t temp = {0,0,0};
+						drive(temp, settings);
+						P1OUT |= BIT1;
+					}
+				}
+				else
+				{
+					calibration_status = 0;
+				}
+				break;
+
+			case 2:
+				while(!checkifButtonIsPressed(car, R2_BUTTON))
+				{
+					P1OUT &= ~BIT1;
+					if(getNRF24report(radio, car)==0)
+					{
+						settings.steer_offset += car.steer/20;
+						settings.steer_invert = checkifButtonIsPressed(car, R1_BUTTON);
+						delay(10);
+						report_t temp = {0,0,0};
+						drive(temp, settings);
+					}
+				}
+				calibration_status = 0;
+				break;
+
+			default:
+				break;
+			}
+
+			last_millis = millis();
+		}
+		else
+		{
+			if(millis() - last_millis > 500)
+			{
+				report_t temp = {0,0,0};
+				drive(temp, settings);
+				P1OUT |= BIT0;
+			}
+		}
 	}
 	return 0;
 }
