@@ -11,6 +11,8 @@
 #define START_CALIBRATION_TIME_MS 	2000
 #define TIMEOUT_MS					250
 
+#define BASE_ESC					1500
+
 typedef struct ROSpberryRemote
 {
 	int16_t linear;
@@ -32,6 +34,7 @@ typedef struct CarParameters_
 {
 	int8_t steer_invert;
 	int16_t steer_offset;
+	int16_t max_acc;
 }CarParameters;
 
 #endif /* REMOTE_DEFINES_H_ */

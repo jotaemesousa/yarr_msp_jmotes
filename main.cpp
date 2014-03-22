@@ -144,17 +144,17 @@ void drive(report_t &gamepad_report, CarParameters &settings)
 	if(checkifButtonIsPressed(gamepad_report, L1_BUTTON))
 	{
 		if (y > 0){
-			speed = map(y, 1, 127, 1500, 2000);
+			speed = map(y, 1, 127, BASE_ESC, BASE_ESC + settings.max_acc);		//2000
 		}else if (y < 0){
-			speed = map(-y, 1, 127, 1500, 1000);
+			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - settings.max_acc);	//1000
 		}
 	}
 	else
 	{
 		if (y > 0){
-			speed = map(y, 1, 127, 1500, 1800);
+			speed = map(y, 1, 127, BASE_ESC, BASE_ESC + settings.max_acc / 2);		//1800
 		}else if (y < 0){
-			speed = map(-y, 1, 127, 1500, 1200);
+			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - settings.max_acc / 2);	//1200
 		}
 	}
 
@@ -195,6 +195,7 @@ int main(void)
 	CarParameters settings;
 	settings.steer_invert = 0;
 	settings.steer_offset = 0;
+	settings.max_acc = 0;
 
 	readSettinsFromFlash(&settings);
 
@@ -268,6 +269,12 @@ int main(void)
 					{
 						settings.steer_offset += car.steer/20;
 						settings.steer_invert = checkifButtonIsPressed(car, R1_BUTTON);
+						settings.max_acc = map((((car.linear) >= 0) ? car.linear : 0), 0, 120, 100, 500);
+
+						if(settings.max_acc > 500)
+						{
+							settings.max_acc = 500;
+						}
 						delay(10);
 						report_t temp = {0,0,0};
 						drive(temp, settings);
@@ -328,8 +335,5 @@ __interrupt void ADC10_ISR(void)
 #pragma vector=WDT_VECTOR
 __interrupt void watchdog_timer(void)
 {
-	static int c = 0;
-
-	var = 1;
 
 }
