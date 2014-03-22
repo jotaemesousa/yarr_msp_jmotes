@@ -10,6 +10,7 @@
 #include "remote_defines.h"
 #include "string.h"
 #include "flash.h"
+#include "math.h"
 
 extern "C"
 {
@@ -141,7 +142,7 @@ void drive(report_t &gamepad_report, CarParameters &settings)
 	TA1CCR1 = pos;
 
 	unsigned int speed = 1500;
-	if(checkifButtonIsPressed(gamepad_report, L1_BUTTON))
+	if(!checkifButtonIsPressed(gamepad_report, L1_BUTTON))
 	{
 		if (y > 0){
 			speed = map(y, 1, 127, BASE_ESC, BASE_ESC + settings.max_acc);		//2000
@@ -215,6 +216,7 @@ int main(void)
 	rf24_init(radio);
 
 	uint8_t calibration_status = 0;
+	uint8_t calibration_acc_status = 0;
 
 	for(;;)
 	{
@@ -234,6 +236,7 @@ int main(void)
 				radio.startListening();
 			}
 
+			int16_t temp;
 			switch (calibration_status)
 			{
 			case 0:
@@ -250,6 +253,7 @@ int main(void)
 					if(millis() - last_millis_calibration > START_CALIBRATION_TIME_MS)
 					{
 						calibration_status = 2;
+						calibration_acc_status = 1;
 						report_t temp = {0,0,0};
 						drive(temp, settings);
 						P1OUT |= BIT1;
@@ -258,29 +262,58 @@ int main(void)
 				else
 				{
 					calibration_status = 0;
+					calibration_acc_status = 0;
 				}
 				break;
 
 			case 2:
+
 				while(!checkifButtonIsPressed(car, R2_BUTTON))
 				{
 					P1OUT &= ~BIT1;
-					if(getNRF24report(radio, car)==0)
+					if(getNRF24report(radio, car) == 0)
 					{
 						settings.steer_offset += car.steer/20;
 						settings.steer_invert = checkifButtonIsPressed(car, R1_BUTTON);
-						settings.max_acc = map((((car.linear) >= 0) ? car.linear : 0), 0, 120, 100, 500);
 
-						if(settings.max_acc > 500)
+						switch (calibration_acc_status)
 						{
-							settings.max_acc = 500;
+						case 1:
+							if(car.linear <= 10 && car.linear >= -10)
+							{
+								calibration_acc_status = 1;
+							}
+							else
+							{
+								calibration_acc_status = 2;
+							}
+							break;
+
+						case 2:
+							settings.max_acc = map((((car.linear) >= 0) ? car.linear : 0), 0, 120, 100, 500);
+							if(settings.max_acc > 500)
+							{
+								settings.max_acc = 500;
+							}
+							break;
+						default:
+							break;
 						}
+
 						delay(10);
 						report_t temp = {0,0,0};
 						drive(temp, settings);
 					}
 				}
 				storeSettinsToFlash(settings);
+
+				while(car.linear != 0)
+				{
+					if(getNRF24report(radio, car))
+					{
+						car.linear = 1;
+					}
+				}
 				calibration_status = 0;
 				break;
 
