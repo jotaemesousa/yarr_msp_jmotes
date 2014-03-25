@@ -141,13 +141,13 @@ void drive(report_t &gamepad_report, CarParameters &settings)
 
 	TA1CCR1 = pos;
 
-	unsigned int speed = 1500;
+	unsigned int speed = BASE_ESC;
 	if(!checkifButtonIsPressed(gamepad_report, L1_BUTTON))
 	{
 		if (y > 0){
 			speed = map(y, 1, 127, BASE_ESC, BASE_ESC + settings.max_acc);		//2600
 		}else if (y < 0){
-			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - settings.max_acc);	//400
+			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - 1000);	//400
 		}
 	}
 	else
@@ -155,7 +155,7 @@ void drive(report_t &gamepad_report, CarParameters &settings)
 		if (y > 0){
 			speed = map(y, 1, 127, BASE_ESC, BASE_ESC + settings.max_acc / 2);		//1800
 		}else if (y < 0){
-			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - settings.max_acc / 2);	//1200
+			speed = map(-y, 1, 127, BASE_ESC, BASE_ESC - 1000);	//1200
 		}
 	}
 
@@ -290,11 +290,11 @@ int main(void)
 							break;
 
 						case 2:
-							settings.max_acc = map((((car.linear) >= 0) ? car.linear : 0), 0, 120, 250, 1300);
+							settings.max_acc = map((((car.linear) >= 0) ? car.linear : 0), 0, 120, 150, 850);
 
-							if(settings.max_acc > 1300)
+							if(settings.max_acc > 850)
 							{
-								settings.max_acc = 1300;
+								settings.max_acc = 850;
 							}
 							break;
 						default:
